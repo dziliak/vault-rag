@@ -1,5 +1,7 @@
 # vault-rag
-<<<<<<< HEAD
+
+=======
+
 Minimal local RAG over an Obsidian vault using Ollama, LlamaIndex, and Chroma
 =======
 
@@ -25,4 +27,3 @@ Minimal local RAG over an Obsidian vault using:
 4) Ask questions:
    vault ask ~/Documents/Obsidian/obsidian_vault "What notes mention borg backups and sleep?"
 
->>>>>>> 5d65cb3 (Initial commit w/ first working setup)
