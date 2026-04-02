@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from pathlib import Path
 from typing import cast
 
@@ -19,6 +20,8 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from .config import RagConfig
 from .error import OllamaError, check_ollama_connection, handle_ollama_error
+
+logger = logging.getLogger(__name__)
 
 
 def _should_skip(path: Path, cfg: RagConfig) -> bool:
@@ -65,6 +68,8 @@ def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, i
     if not vault_path.exists():
         raise FileNotFoundError(f"Vault path does not exist: {vault_path}")
 
+    logger.info(f"Starting index build for vault: {vault_path}")
+
     try:
         Settings.llm = Ollama(
             model=cfg.llm_model,
@@ -97,6 +102,8 @@ def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, i
     if not all_files:
         raise RuntimeError(f"No ingestible files found under: {vault_path}")
 
+    logger.info(f"Found {len(all_files)} files to process")
+
     # Manifest-driven incremental indexing
     manifest = _load_manifest(cfg)
 
@@ -120,6 +127,8 @@ def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, i
     if not to_ingest:
         return (0, 0, skipped)
 
+    logger.info(f"Ingesting {len(to_ingest)} files")
+
     try:
         for f in to_ingest:
             chroma_collection.delete(where={"file_path": str(f)})
@@ -131,6 +140,8 @@ def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, i
         )
         documents = reader.load_data()
 
+        logger.info(f"Loaded {len(documents)} documents")
+
         _ = VectorStoreIndex.from_documents(
             documents, storage_context=storage_context, show_progress=True
         )
@@ -138,5 +149,9 @@ def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, i
         _save_manifest(cfg, manifest)
     except Exception as e:
         handle_ollama_error(e, "processing documents")
+
+    logger.info(
+        f"Index update complete: added={added}, updated={updated}, skipped={skipped}"
+    )
 
     return (added, updated, skipped)

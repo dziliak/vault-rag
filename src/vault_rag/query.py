@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import List
 
@@ -11,6 +12,8 @@ from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from .config import RagConfig
 from .error import OllamaError, check_ollama_connection, handle_ollama_error
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -51,6 +54,7 @@ def _load_index(cfg: RagConfig) -> VectorStoreIndex:
 
 
 def ask(question: str, cfg: RagConfig) -> tuple[str, List[Source]]:
+    logger.info(f"Processing query: {question}")
     try:
         index = _load_index(cfg)
         qe = index.as_query_engine(similarity_top_k=cfg.top_k)
@@ -67,6 +71,7 @@ def ask(question: str, cfg: RagConfig) -> tuple[str, List[Source]]:
                 )
             )
 
+        logger.info(f"Query returned {len(sources)} source nodes")
         return (str(resp), sources)
     except Exception as e:
         handle_ollama_error(e, "querying")

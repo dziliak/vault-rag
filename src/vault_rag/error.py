@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import NoReturn
+
 from .config import RagConfig
 
 
@@ -15,7 +17,7 @@ class OllamaExecutionError(OllamaError):
     pass
 
 
-def handle_ollama_error(err: Exception, context: str = "") -> None:
+def handle_ollama_error(err: Exception, context: str = "") -> NoReturn:
     msg = f"Ollama error ({context}): {err}"
     msg += "\n\nPlease ensure Ollama is running:"
     msg += "\n  - Start Ollama: ollama serve"

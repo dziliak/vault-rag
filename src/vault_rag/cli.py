@@ -9,6 +9,21 @@ from .error import OllamaExecutionError
 from .ingest import build_or_update_index
 from .query import ask
 
+logger = None
+
+
+def get_logger():
+    global logger
+    if logger is None:
+        import logging
+
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+        logger = logging.getLogger("vault-rag")
+    return logger
+
 
 def main() -> None:
     p = argparse.ArgumentParser(
@@ -38,12 +53,13 @@ def main() -> None:
 
     args = p.parse_args()
     cfg = RagConfig()
+    logger = get_logger()
 
     try:
         if args.cmd == "index":
             added, updated, skipped = build_or_update_index(Path(args.vault_path), cfg)
-            print(f"Indexed into {cfg.chroma_dir}/ (collection={cfg.collection})")
-            print(f"added={added} updated={updated} skipped={skipped}")
+            logger.info(f"Indexed into {cfg.chroma_dir}/ (collection={cfg.collection})")
+            logger.info(f"added={added} updated={updated} skipped={skipped}")
             return
 
         if args.cmd == "ask":
@@ -52,6 +68,7 @@ def main() -> None:
 
             answer, sources = ask(args.question, cfg)
 
+            logger.info("Answer retrieved successfully")
             print("\n=== ANSWER ===\n")
             print(answer)
 
@@ -71,6 +88,7 @@ def main() -> None:
             if args.top_k is not None:
                 cfg = RagConfig(top_k=args.top_k)
             _, sources = ask(args.question, cfg)
+            logger.info(f"Retrieved {len(sources)} sources")
             for i, s in enumerate(sources, 1):
                 path = (
                     s.metadata.get("file_path")
@@ -82,41 +100,6 @@ def main() -> None:
                 print()
             return
     except OllamaExecutionError as e:
+        logger.error(f"Ollama error: {e}")
         print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
-
-    if args.cmd == "ask":
-        if args.top_k is not None:
-            cfg = RagConfig(top_k=args.top_k)
-
-        answer, sources = ask(args.question, cfg)
-
-        print("\n=== ANSWER ===\n")
-        print(answer)
-
-        print("\n=== SOURCES ===\n")
-        for i, s in enumerate(sources, 1):
-            path = (
-                s.metadata.get("file_path")
-                or s.metadata.get("filename")
-                or s.metadata.get("file_name")
-            )
-            print(f"[{i}] score={s.score}  {path}")
-            snippet = (s.text or "").strip().replace("\n", " ")
-            print(f"    {snippet[:240]}{'…' if len(snippet) > 240 else ''}\n")
-        return
-
-    if args.cmd == "retrieve":
-        if args.top_k is not None:
-            cfg = RagConfig(top_k=args.top_k)
-        _, sources = ask(args.question, cfg)
-        for i, s in enumerate(sources, 1):
-            path = (
-                s.metadata.get("file_path")
-                or s.metadata.get("filename")
-                or s.metadata.get("file_name")
-            )
-            print(f"[{i}] score={s.score} {path}")
-            print((s.text or "").strip()[:800])
-            print()
-        return

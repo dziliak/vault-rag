@@ -11,3 +11,4 @@ wheels/
 
 # LLM stuff
 .chroma/
+.DS_Store
