@@ -67,13 +67,7 @@
 
 ## Documentation
 
-### 12. Improve README
-- Add installation troubleshooting section
-- Include examples of common use cases
-- Add performance tuning tips
-- Document environment variables better
-
-### 13. Add Code Documentation
+### 12. Add Code Documentation
 - Add docstrings to all public functions/classes
 - Add type hints to all function signatures
 - Document exception behavior
