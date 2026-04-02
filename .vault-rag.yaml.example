@@ -1,0 +1,28 @@
+# Vault RAG Configuration
+# This file can be named .vault-rag.yaml or config.yaml
+# CLI arguments will override these values
+
+# Chroma database settings
+chroma_dir: ".chroma"
+collection: "obsidian"
+manifest_path: ".chroma/manifest.json"
+
+# Ollama settings
+ollama_base_url: "http://localhost:11434"
+llm_model: "qwen2.5:32b"
+embed_model: "bge-m3"
+
+# Retrieval settings
+top_k: 8
+
+# Chunking settings for document processing
+chunk_size: 800
+chunk_overlap: 120
+
+# File type settings
+include_exts: ".md", ".txt"
+ignore_dirs: ".obsidian", ".trash", "Attachments", ".git"
+
+# Request timeouts (in seconds)
+llm_request_timeout: 600.0
+embed_request_timeout: 600.0

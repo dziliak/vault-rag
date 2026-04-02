@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from .config import RagConfig
-from .error import OllamaExecutionError
+from .error import ConfigValidationError, OllamaExecutionError
 from .ingest import build_or_update_index
 from .query import ask
 
@@ -44,15 +44,27 @@ def main() -> None:
     )
     p_ask.add_argument("question", type=str, help="Question to ask")
     p_ask.add_argument(
-        "--top-k", type=int, default=None, help="Override retrieval top_k"
+        "--top-k",
+        type=int,
+        default=None,
+        help="Override retrieval top_k from config",
     )
 
     p_ret = sub.add_parser("retrieve", help="Show retrieved chunks (debug retrieval)")
     p_ret.add_argument("question", type=str)
-    p_ret.add_argument("--top-k", type=int, default=None)
+    p_ret.add_argument(
+        "--top-k", type=int, default=None, help="Override retrieval top_k from config"
+    )
 
     args = p.parse_args()
-    cfg = RagConfig()
+    cli_overrides = {}
+    if args.cmd == "ask" and args.top_k is not None:
+        cli_overrides["top_k"] = args.top_k
+    elif args.cmd == "retrieve" and args.top_k is not None:
+        cli_overrides["top_k"] = args.top_k
+
+    cfg = RagConfig.from_file(cli_overrides)
+    cfg.validate()
     logger = get_logger()
 
     try:
@@ -63,9 +75,6 @@ def main() -> None:
             return
 
         if args.cmd == "ask":
-            if args.top_k is not None:
-                cfg = RagConfig(top_k=args.top_k)
-
             answer, sources = ask(args.question, cfg)
 
             logger.info("Answer retrieved successfully")
@@ -85,8 +94,6 @@ def main() -> None:
             return
 
         if args.cmd == "retrieve":
-            if args.top_k is not None:
-                cfg = RagConfig(top_k=args.top_k)
             _, sources = ask(args.question, cfg)
             logger.info(f"Retrieved {len(sources)} sources")
             for i, s in enumerate(sources, 1):
@@ -99,6 +106,10 @@ def main() -> None:
                 print((s.text or "").strip()[:800])
                 print()
             return
+    except ConfigValidationError as e:
+        logger.error(f"Configuration error: {e}")
+        print(f"ERROR: Configuration error: {e}", file=sys.stderr)
+        sys.exit(1)
     except OllamaExecutionError as e:
         logger.error(f"Ollama error: {e}")
         print(f"ERROR: {e}", file=sys.stderr)

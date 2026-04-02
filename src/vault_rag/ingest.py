@@ -77,8 +77,8 @@ def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, i
             request_timeout=cfg.llm_request_timeout,
         )
         Settings.node_parser = SentenceSplitter(
-            chunk_size=800,
-            chunk_overlap=120,
+            chunk_size=cfg.chunk_size,
+            chunk_overlap=cfg.chunk_overlap,
         )
         Settings.embed_model = OllamaEmbedding(
             model_name=cfg.embed_model,
