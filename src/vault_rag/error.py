@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import NoReturn
 
+from .config import ConfigValidationError
 from .config import RagConfig
 
 
