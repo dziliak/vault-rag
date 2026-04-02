@@ -22,3 +22,13 @@ vault = "vault_rag.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vault_rag"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+
+[tool.ruff.lint.flake8-type-checking]
+strict = true

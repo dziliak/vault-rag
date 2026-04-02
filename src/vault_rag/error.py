@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import sys
+from .config import RagConfig
 
 
 class OllamaError(Exception):
@@ -11,16 +11,19 @@ class OllamaNotAvailable(OllamaError):
     pass
 
 
+class OllamaExecutionError(OllamaError):
+    pass
+
+
 def handle_ollama_error(err: Exception, context: str = "") -> None:
     msg = f"Ollama error ({context}): {err}"
     msg += "\n\nPlease ensure Ollama is running:"
     msg += "\n  - Start Ollama: ollama serve"
     msg += "\n  - Check status: curl http://localhost:11434"
-    print(f"ERROR: {msg}", file=sys.stderr)
-    sys.exit(1)
+    raise OllamaExecutionError(msg)
 
 
-def check_ollama_connection(cfg) -> None:
+def check_ollama_connection(cfg: RagConfig) -> None:
     import requests
 
     try:

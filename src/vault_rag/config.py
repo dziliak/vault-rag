@@ -23,6 +23,5 @@ class RagConfig:
     include_exts: tuple[str, ...] = (".md", ".txt")
     ignore_dirs: tuple[str, ...] = (".obsidian", ".trash", "Attachments", ".git")
 
-    llm_request_timeout: float = 600.0   # 10 minutes
-    embed_request_timeout: float = 600.0 # 10 minutes
-
+    llm_request_timeout: float = 600.0
+    embed_request_timeout: float = 600.0

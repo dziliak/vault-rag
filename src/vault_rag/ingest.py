@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import cast
 
 import chromadb
 from llama_index.core import (
@@ -12,13 +12,13 @@ from llama_index.core import (
     StorageContext,
     VectorStoreIndex,
 )
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
 from llama_index.vector_stores.chroma import ChromaVectorStore
-from llama_index.core.node_parser import SentenceSplitter
 
 from .config import RagConfig
-from .error import check_ollama_connection, handle_ollama_error, OllamaError
+from .error import OllamaError, check_ollama_connection, handle_ollama_error
 
 
 def _should_skip(path: Path, cfg: RagConfig) -> bool:
@@ -36,23 +36,23 @@ def _sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def _load_manifest(cfg: RagConfig) -> Dict[str, str]:
+def _load_manifest(cfg: RagConfig) -> dict[str, str]:
     try:
-        return json.loads(cfg.manifest_path.read_text("utf-8"))
+        return cast(dict[str, str], json.loads(cfg.manifest_path.read_text("utf-8")))
     except FileNotFoundError:
         return {}
     except json.JSONDecodeError:
         return {}
 
 
-def _save_manifest(cfg: RagConfig, manifest: Dict[str, str]) -> None:
+def _save_manifest(cfg: RagConfig, manifest: dict[str, str]) -> None:
     cfg.manifest_path.parent.mkdir(parents=True, exist_ok=True)
     cfg.manifest_path.write_text(
         json.dumps(manifest, indent=2, sort_keys=True), "utf-8"
     )
 
 
-def build_or_update_index(vault_path: Path, cfg: RagConfig) -> Tuple[int, int, int]:
+def build_or_update_index(vault_path: Path, cfg: RagConfig) -> tuple[int, int, int]:
     """
     Returns (added, updated, skipped)
     """

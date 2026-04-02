@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 from typing import List
 
 import chromadb
@@ -11,7 +10,7 @@ from llama_index.llms.ollama import Ollama
 from llama_index.vector_stores.chroma import ChromaVectorStore
 
 from .config import RagConfig
-from .error import check_ollama_connection, handle_ollama_error, OllamaError
+from .error import OllamaError, check_ollama_connection, handle_ollama_error
 
 
 @dataclass
@@ -68,6 +67,6 @@ def ask(question: str, cfg: RagConfig) -> tuple[str, List[Source]]:
                 )
             )
 
-        return str(resp), sources
+        return (str(resp), sources)
     except Exception as e:
         handle_ollama_error(e, "querying")
